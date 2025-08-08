@@ -59,6 +59,7 @@ jobs:
         uses: release-drafter/release-drafter@v6
         with:
           version: ${{ needs.get-version.outputs.app_version }}
+          prerelease: ${{ steps.current_version.outputs.text }}
           publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -76,9 +77,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.get-version.outputs.app_version }}
-          name: Conic Launcher v${{ needs.get-version.outputs.app_version }}
-          prerelease: ${{ steps.current_version.outputs.text }}
-        #  body: ${{ steps.drafter.outputs.body }}
           files: ./release_files/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
