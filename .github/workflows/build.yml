@@ -59,6 +59,7 @@ jobs:
         uses: release-drafter/release-drafter@v6
         with:
           version: ${{ needs.get-version.outputs.app_version }}
+          publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
