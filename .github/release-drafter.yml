@@ -19,31 +19,3 @@ template: |
 
   $CHANGES
 
-replacers:
-  - search: '/^(feat|fix|docs|style|refactor|perf|test|chore):\s*/i'
-    replace: ''
-autolabeler:
-  - label: 'feature'
-    title:
-      - '/^feat(\(.+\))?:/i'
-  - label: 'bug'
-    title:
-      - '/^fix(\(.+\))?:/i'
-  - label: 'documentation'
-    title:
-      - '/^docs(\(.+\))?:/i'
-  - label: 'style'
-    title:
-      - '/^style(\(.+\))?:/i'
-  - label: 'refactor'
-    title:
-      - '/^refactor(\(.+\))?:/i'
-  - label: 'performance'
-    title:
-      - '/^perf(\(.+\))?:/i'
-  - label: 'test'
-    title:
-      - '/^test(\(.+\))?:/i'
-  - label: 'chore'
-    title:
-      - '/^chore(\(.+\))?:/i'
