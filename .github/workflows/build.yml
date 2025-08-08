@@ -183,7 +183,7 @@ jobs:
           path: ${{ github.workspace }}/target/release/bundle/macos/conic-launcher.app.tar.gz.sig
 
   release:
-    needs: [build]
+    needs: [build, get-version]
     permissions:
       contents: write
     runs-on: ubuntu-22.04
@@ -191,6 +191,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: show version
+        run: |
+          echo ${{ needs.get-version.outputs.app_version }}
+          echo ${{ needs.get-version.outputs.previous_app_version }}
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
