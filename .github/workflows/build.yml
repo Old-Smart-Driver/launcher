@@ -73,9 +73,15 @@ jobs:
         run: |
           mkdir ./release_files
           echo 114514 > ./release_files/1.txt
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./release_files/**
+          echo 114514 > ./release_files/2.txt
+          echo 114514 > ./release_files/3.txt
+          echo 114514 > ./release_files/4.txt
+      - name: Upload all release_files assets to existing release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: v${{ needs.get-version.outputs.app_version }}
+        run: |
+          for file in release_files/*; do
+            echo "Uploading $file to release $TAG_NAME"
+            gh release upload "$TAG_NAME" "$file" --clobber
+          done
