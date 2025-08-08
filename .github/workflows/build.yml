@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 2
       - name: Get app version
         id: current_version
         run: |
@@ -21,10 +22,7 @@ jobs:
       - name: Get previous version
         id: previous_version
         run: |
-          PREV_COMMIT=$(git rev-parse HEAD~1)
-          PREV_VERSION=$(git show $PREV_COMMIT:core/tauri.conf.json | jq -r .version)
-          echo "Previous version: $PREV_VERSION"
-          echo "text=$PREV_VERSION" >> $GITHUB_OUTPUT
+          echo "text=$(git show HEAD~1:core/tauri.conf.json | jq -r .version)" >> $GITHUB_OUTPUT
     outputs:
       app_version: ${{ steps.current_version.outputs.text }}
       previous_app_version: ${{ steps.previous_version.outputs.text }}
