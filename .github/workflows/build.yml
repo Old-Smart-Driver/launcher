@@ -187,7 +187,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-22.04
-    # if: needs.get-version.outputs.app_version != needs.get-version.outputs.previous_app_version
+    if: needs.get-version.outputs.app_version != needs.get-version.outputs.previous_app_version
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -201,13 +201,32 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./release_files
+      - name: Detect prerelease
+        id: detect
+        run: |
+          if [[ "${{ needs.get-version.outputs.app_version }}" == *"alpha"* || "${{ needs.get-version.outputs.app_version }}" == *"beta"* || "${{ needs.get-version.outputs.app_version }}" == *"rc"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Draft release
+        id: drafter
+        uses: release-drafter/release-drafter@v6
+        with:
+          version: ${{ needs.get-version.outputs.app_version }}
+          disable-releaser: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.get-version.outputs.app_version }}
           name: Conic Launcher v${{ needs.get-version.outputs.app_version }}
-          body: 1145141919810
+          prerelease: ${{ steps.current_version.outputs.text }}
+          body: ${{ steps.drafter.outputs.body }}
           files: ./release_files/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

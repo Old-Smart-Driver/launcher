@@ -1,0 +1,56 @@
+name-template: 'Conic Launcher v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: '🏗️ Maintenance'
+    label: 'chore'
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+template: |
+  ## Changes
+
+  $CHANGES
+
+replacers:
+  - search: '/^(feat|fix|docs|style|refactor|perf|test|chore):\s*/i'
+    replace: ''
+autolabeler:
+  - label: 'feature'
+    title:
+      - '/^feat(\(.+\))?:/i'
+
+  - label: 'bug'
+    title:
+      - '/^fix(\(.+\))?:/i'
+
+  - label: 'documentation'
+    title:
+      - '/^docs(\(.+\))?:/i'
+
+  - label: 'style'
+    title:
+      - '/^style(\(.+\))?:/i'
+
+  - label: 'refactor'
+    title:
+      - '/^refactor(\(.+\))?:/i'
+
+  - label: 'performance'
+    title:
+      - '/^perf(\(.+\))?:/i'
+
+  - label: 'test'
+    title:
+      - '/^test(\(.+\))?:/i'
+
+  - label: 'chore'
+    title:
+      - '/^chore(\(.+\))?:/i'
