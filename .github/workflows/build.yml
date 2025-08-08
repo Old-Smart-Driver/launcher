@@ -26,164 +26,8 @@ jobs:
     outputs:
       app_version: ${{ steps.current_version.outputs.text }}
       previous_app_version: ${{ steps.previous_version.outputs.text }}
-  build:
-    needs: [get-version]
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: "macos-15"
-            arch: "aarch64"
-
-          # - platform: "macos-13"
-          #   arch: "x64"
-          #
-          # - platform: "ubuntu-22.04"
-          #   rpm: "x86_64"
-          #   deb: "amd64"
-          #   appimage: "amd64"
-          #
-          # - platform: "ubuntu-22.04-arm"
-          #   deb: "arm64"
-          #   rpm: "aarch64"
-          #   appimage: "aarch64"
-          #
-          # - platform: "windows-2025"
-          #   arch: "x64"
-          #
-          # - platform: "windows-11-arm"
-          #   arch: "arm64"
-
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' || matrix.platform == 'ubuntu-22.04-arm'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache-dependency-path: "pnpm-lock.yaml"
-
-      - name: Enable Corepack and install pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@latest --activate
-
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-
-      - name: install frontend dependencies
-        run: pnpm install
-
-      - name: Build the app
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: dW50cnVzdGVkIGNvbW1lbnQ6IHJzaWduIGVuY3J5cHRlZCBzZWNyZXQga2V5ClJXUlRZMEl5THZzOE1QK1JrRWxjb3VOZ3dHQ2cvdWNhaXVRb09Ycm1pakllaFQvUlFya0FBQkFBQUFBQUFBQUFBQUlBQUFBQUc3MVlnU0tYMmtjcjc0V0pZeVBxMklMRkhya2F3MnAycjd6OGxnYTJURlNJSmk1SEVURmxzaGxYL2NXZW0xVVV1cTB2dHBkMGtFc3N3WkpxYjBPaDdsVzZyVTFBRi9LOXdRUThEcEQvWmFQVURDcXZXTlRNL0Nla1VSUWZVRFBjUkJSTzdkS08rY0U9Cg==
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: abcd
-
-          # TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          # TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: |
-          echo $TAURI_SIGNING_PRIVATE_KEY
-          echo $TAURI_SIGNING_PRIVATE_KEY_PASSWORD
-          pnpm run tauri build
-
-      - name: Upload deb bundle
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'ubuntu-22.04' || matrix.platform == 'ubuntu-22.04-arm'
-        with:
-          name: Debian bundle(${{ matrix.deb }})
-          path: ${{ github.workspace }}/target/release/bundle/deb/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.deb }}.deb
-
-      - name: Upload rpm bundle
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'ubuntu-22.04' || matrix.platform == 'ubuntu-22.04-arm'
-        with:
-          name: RPM bundle(${{ matrix.rpm }})
-          path: ${{ github.workspace }}/target/release/bundle/rpm/conic-launcher-${{ needs.get-version.outputs.app_version }}-1.${{ matrix.rpm }}.rpm
-
-      - name: Upload appimage bundle
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'ubuntu-22.04' || matrix.platform == 'ubuntu-22.04-arm'
-        with:
-          name: AppImage bundle(${{ matrix.appimage }})
-          path: ${{ github.workspace }}/target/release/bundle/appimage/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.appimage }}.AppImage
-
-      - name: Upload appimage updater signature
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'ubuntu-22.04' || matrix.platform == 'ubuntu-22.04-arm'
-        with:
-          name: Updater signature(${{ matrix.appimage }}-appimage)
-          path: ${{ github.workspace }}/target/release/bundle/appimage/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.appimage }}.AppImage.sig
-
-      - name: Upload Windows installation-free exe
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'windows-2025' || matrix.platform == 'windows-11-arm'
-        with:
-          name: Windows Installation-free(${{ matrix.arch }}-exe)
-          path: ${{ github.workspace }}/target/release/conic-launcher.exe
-
-      - name: Upload Microsoft Installer bundle
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'windows-2025' || matrix.platform == 'windows-11-arm'
-        with:
-          name: Microsoft Installer bundle(${{ matrix.arch }})
-          path: ${{ github.workspace }}/target/release/bundle/msi/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.arch }}_en-US.msi
-
-      - name: Upload Microsoft Installer signature
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'windows-2025' || matrix.platform == 'windows-11-arm'
-        with:
-          name: Updater signature(${{ matrix.arch }}-msi)
-          path: ${{ github.workspace }}/target/release/bundle/msi/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.arch }}_en-US.msi.sig
-
-      - name: Upload NSIS bundle
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'windows-2025' || matrix.platform == 'windows-11-arm'
-        with:
-          name: NSIS bundle(${{ matrix.arch }})
-          path: ${{ github.workspace }}/target/release/bundle/nsis/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.arch }}-setup.exe
-
-      - name: Upload NSIS updater signature
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'windows-2025' || matrix.platform == 'windows-11-arm'
-        with:
-          name: Updater signature(${{ matrix.arch }}-nsis)
-          path: ${{ github.workspace }}/target/release/bundle/nsis/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.arch }}-setup.exe.sig
-
-      - name: Upload dmg bundle
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'macos-15' || matrix.platform == 'macos-13'
-        with:
-          name: MacOS ${{ matrix.arch }} bundle(dmg)
-          path: ${{ github.workspace }}/target/release/bundle/dmg/conic-launcher_${{ needs.get-version.outputs.app_version }}_${{ matrix.arch }}.dmg
-
-      - name: Upload macos updater bundle
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'macos-15' || matrix.platform == 'macos-13'
-        with:
-          name: MacOS ${{ matrix.arch }} updater bundle
-          path: ${{ github.workspace }}/target/release/bundle/macos/conic-launcher.app.tar.gz
-
-      - name: Upload macos updater signature
-        uses: actions/upload-artifact@v4
-        if: matrix.platform == 'macos-15' || matrix.platform == 'macos-13'
-        with:
-          name: MacOS ${{ matrix.arch }} updater signature
-          path: ${{ github.workspace }}/target/release/bundle/macos/conic-launcher.app.tar.gz.sig
-
   release:
-    needs: [build, get-version]
+    needs: [get-version]
     permissions:
       contents: write
     runs-on: ubuntu-22.04
@@ -215,11 +59,17 @@ jobs:
         uses: release-drafter/release-drafter@v6
         with:
           version: ${{ needs.get-version.outputs.app_version }}
-          disable-releaser: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: show body
+        env:
+          BODY: ${{ steps.drafter.outputs.body }}
 
+      - name: generate file (remove)
+        run: |
+          mkdir ./release_files
+          echo 114514 > ./release_files/1.txt
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
